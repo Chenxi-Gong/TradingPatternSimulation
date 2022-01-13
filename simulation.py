@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Stock trading pattern test
-
-# Simulation of a trading pattern (on a Chinese stock).
-# 
-# Average profit rate of this trading pattern will be calculated.
-# 
-# Visualization available.
-
 # -- GongChen'xi
 # 
 #   20220112
@@ -110,38 +102,6 @@ def change_rate(buy_date, date, close_price):
     change = (current_price-buy_price)/buy_price
     return change
 
-def buy_signal(date, rsi6, rsi24):
-    buy = 1
-    # RSI24  < 30 and
-    if rsi24[date] >= 0.3:
-        buy = 0
-    # RSI6 < 50 and
-    if rsi6[date] >= 0.5:
-        buy = 0
-    # RSI6 - RSI24 > 0.5
-    if rsi6[date] - rsi24[date] <= 0.05:
-        buy = 0
-    return buy
-
-def sell_signal(buy_date, date, rsi6, rsi24, close_price):
-    sell = 0
-    # loss = 5% or
-    if change_rate(buy_date, date, close_price) < -0.05:
-        sell = 1
-    # profit = 10% or
-    if change_rate(buy_date, date, close_price) > 0.1:
-        sell = 1
-    # RSI6 > 75 or
-    if rsi6[date] > 0.75:
-        sell = 1
-    # RSI24 > 60 or
-    if rsi24[date] > 0.60:
-        sell = 1
-    # RSI6 - RSI24 < 0
-    if rsi6[date] - rsi24[date] < 0.0:
-        sell = 1
-    return sell
-
 def simulation_start_date(trading_date_list):
     date = trading_date_list[23]
     return date
@@ -154,48 +114,21 @@ def next_date(date, trading_date_list):
     return new_date
 
 
-# In[10]:
+# In[ ]:
 
 
-# simulation
-def simulation(stock_num, start_date, end_date, show):
-    # simulation
-    original = sys.stdout
-    sys.stdout = open(os.devnull, 'w')
-    rsi6, rsi24 = get_rsi(stock_num, start_date, end_date)
+def initialize(stock_num, start_date, end_date):
     close_price = get_price(stock_num, start_date, end_date)
     trading_date_list = get_trading_dates(stock_num, start_date, end_date)
-    sys.stdout = original
-    position = 0 # 1 for stock, 0 for cash
     date = simulation_start_date(trading_date_list)
-    record = []
-    buy_date = None
-    while True:
-        if position == 0:
-            if buy_signal(date, rsi6, rsi24) == 1:
-                # all in
-                position = 1
-                buy_date = date
-                # record behavior
-                record.append((date, 'buy'))
-            else:
-                # stand
-                pass
-        else:
-            if sell_signal(buy_date, date, rsi6, rsi24, close_price) == 1:
-                # sell all
-                position = 0
-                # record behavior
-                record.append((date, 'sell'))
-            else:
-                # stand
-                pass
-        if date == end_date:
-            break
-        # move to next trading day
-        date = next_date(date, trading_date_list)
-    
-    # analysis
+    return close_price, trading_date_list, date
+
+
+# In[ ]:
+
+
+# analysis
+def analysis(record, close_price, show):
     close = []
     date = []
     for i in close_price:
